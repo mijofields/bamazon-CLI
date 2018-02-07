@@ -77,9 +77,11 @@ connection.connect(function(err) {
 
     			var quantity = parseInt(answer.quantity);
 
-    		var query = "SELECT stock_quantity FROM products WHERE ?";
+    		var query = "SELECT * FROM products WHERE ?";
   				connection.query(query, { product_name: item }, function(err, res) {
   				if (err) throw err;
+
+  				console.log(res);
 
   				if (quantity > parseInt(res[0].stock_quantity)) {
 
@@ -88,8 +90,27 @@ connection.connect(function(err) {
 
   				} else {
 
+  					var newQuantity = parseInt(res[0].stock_quantity) - quantity;
 
-  					console.log("OK transaction complete!");
+  					console.log("OK transaction complete!\n The cost before tax is $" +(quantity*res[0].price));
+
+  					var query = "UPDATE products SET ? WHERE ?";
+
+  					connection.query(query,
+    [
+      {
+        stock_quantity: newQuantity
+      },
+      {
+        product_name: item
+      }
+    ],
+    function(err, res) {
+    	if (err) throw err;
+
+      	console.log(item + " quantity has been updated, there are now " + newQuantity + " left in stock.");
+
+    });
 
   				};
 
