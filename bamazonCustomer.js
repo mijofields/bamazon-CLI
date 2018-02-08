@@ -81,11 +81,11 @@ connection.connect(function(err) {
   				connection.query(query, { product_name: item }, function(err, res) {
   				if (err) throw err;
 
-  				console.log(res);
-
   				if (quantity > parseInt(res[0].stock_quantity)) {
 
   					console.log("Sorry we don't have enough in stock");
+
+  					begin();
 
 
   				} else {
