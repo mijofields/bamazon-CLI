@@ -90,15 +90,20 @@ function begin () {
   				} else {
 
   					var newQuantity = parseInt(res[0].stock_quantity) - quantity;
+  					var retail = (quantity * res[0].price) + res[0].product_sales;
 
-  					console.log(chalk.yellow("OK transaction complete!\nThe cost before tax is $" +(quantity*res[0].price)));
 
-  					var query = "UPDATE products SET ? WHERE ?";
+  					console.log(chalk.yellow("OK transaction complete!\nThe cost before tax is $" + quantity*res[0].price));
+
+  					var query = "UPDATE products SET ?, ? WHERE ?";
 
   					connection.query(query,
     [
       {
         stock_quantity: newQuantity
+      },
+       {
+        product_sales: retail
       },
       {
         product_name: item
