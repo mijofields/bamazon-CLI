@@ -106,9 +106,6 @@ function lowInventory() {
 
 function addInventory() {
 
-
-
-
 	var query = "SELECT * FROM products";
   		connection.query(query, function(err2, res2) {
   		if (err2) throw err2;
@@ -141,24 +138,23 @@ function addInventory() {
 }]) //end of prompt
 
   			.then(function(answer) {
-  				// console.log(answer);
+  				console.log(answer);
 
   				var item = answer.decision;
     			var quantity = parseFloat(answer.quantity);
     			// console.log(quantity);
     			// console.log(item);
 
-    			var query = "UPDATE products SET stock_quantity = stock_quantity + ? WHERE product_name= ?" 
+    			var query = "UPDATE products SET stock_quantity = stock_quantity +" + quantity + "WHERE product_name='" + item + "'";
 
-  				connection.query(query, [ quantity , item ] , function(err3, res3) {
+  				connection.query(query, function(err3, res3) {
     			if (err3) throw err3;
 
     			// console.log(res2.affectedRows + " record(s) updated");
 
-      			console.log(chalk.greenBright(quantity + " items have been added to the " + item + " inventory"));
-      			viewProducts(); //end of connection
+      			console.log(chalk.greenBright(item + " quantity has been updated."));
+      			viewProducts();
 
-  
     }); //end of connection
 
   
@@ -221,12 +217,12 @@ function addInventory() {
 
   			var stock = parseInt(answers.stock_quantity);
 
-  			var query = 'INSERT INTO products (product_name, department_name, price, stock_quantity) VALUES (?, ?, ?, ?)';
+  			var query = 'INSERT INTO products (product_name, department_name, price, stock_quantity) VALUES ("' + product + '","' + department + '","' + price1 + '","' + stock + '")';
 
-  				connection.query(query, [answers.product_name, answers.department_name, parseFloat(answers.price), answers.stock_quantity], function(err4, res4) {
+  				connection.query(query, function(err4, res4) {
     			if (err4) throw err4;
 
-      			console.log(chalk.greenBright("New item " + Product+ " has been added!"));
+      			console.log(chalk.greenBright("New item has been added!"));
       			viewProducts();
 
 
@@ -249,8 +245,3 @@ function addInventory() {
 begin();
 
 
-
-
-
-
-    		
