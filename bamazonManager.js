@@ -1,13 +1,37 @@
 var inquirer = require('inquirer');
 var mysql = require('mysql');
 var chalk = require('chalk');
+var cTable= require("console.table");
 
+var choices = [];
+
+
+   		var connection = mysql.createConnection({
+  		host: "localhost",
+ 		port: 3306,
+
+  // Your username
+  		user: "root",
+
+  // Your password
+  		password: "5qlp5word",
+  		database: "bamazon_db"
+});
+
+  connection.connect(function(err) {
+  if (err) throw err;
+  // console.log("connected to db as " + connection.threadId);
+
+});
+
+
+function begin() {
 
 inquirer
     		.prompt({
      				name: "decision",
       				type: "list",
-      				message: "Hello Manager, what would you like to do?",
+      				message: chalk.greenBright("Hello Manager, what would you like to do?"),
       				choices: ["View products for sale", "View Low Inventory", "Add to Inventory", "Add New Product"]
 
 
@@ -21,102 +45,204 @@ inquirer
         case "View products for sale":
 
         	viewProducts();
-          	console.log("Here are all the current products in inventory:")
-          break;
+          	break;
 
         case "View Low Inventory":
-        	initDB();
-          	console.log("I'll show you all inventory with less than 5 items")
+        	lowInventory();
           break;
 
         case "Add to Inventory":
-        	initDB();
-          	console.log("I'll let you add new inventory to exisintg products")
+        	addInventory();
+    
           break;
 
         case "Add New Product":
-        	initDB();
-          	console.log("I'll show you add entirely new items")
+        	
+          	addNew();
            break;
-      };
+      };//end switch
 
-  });
+  });//end then
 
-
-
-   function initDB () {
-
-   		var connection = mysql.createConnection({
-  		host: "localhost",
- 		port: 3306,
-
-  // Your username
-  		user: "root",
-
-  // Your password
-  		password: "Equ1f4x!",
-  		database: "bamazon_db"
-});
+    	}; // end of begin
 
 
-connection.connect(function(err) {
-  if (err) throw err;
-  console.log("connected to db as " + connection.threadId);
-
-
-
-
-   })
-};
 
 function viewProducts () {
 
-
-   		var connection = mysql.createConnection({
-  		host: "localhost",
- 		port: 3306,
-
-  // Your username
-  		user: "root",
-
-  // Your password
-  		password: "Equ1f4x!",
-  		database: "bamazon_db"
-});
-
-
-	connection.connect(function(err) {
-  	if (err) throw err;
-  	console.log("connected to db as " + connection.threadId);
-
-
-
-
-   });
 
 		var query = "SELECT * FROM products";
   		connection.query(query, function(err, res) {
   		if (err) throw err;
 
 
-  		console.log("Item ID | Product Name | Retail Price | Quantity\n-------------------------------------");
+  		console.table(res);
 
-    	for (var i = 0; i < res.length; i++) {
-      	console.log(res[i].item_id + " | " + res[i].product_name + " | $ "+ res[i].price + " | " + res[i].stock_quantity + " | ");
+  		begin();
 
+}); //end of query
+}; //enf od viewProducts
 
-
-
-
-
-
-};
-});
-};
+function lowInventory() {
 
 
+  	var query = "SELECT item_id, product_name, price, stock_quantity FROM products WHERE stock_quantity < 5";
+  		connection.query(query, function(err1, res1) {
+  		if (err1) throw err1;
 
 
+  		console.table(res1);
+
+
+  		begin();
+
+
+
+}) // end of query
+//end of connection
+
+}; // end of low inventory
+
+
+function addInventory() {
+
+	var query = "SELECT * FROM products";
+  		connection.query(query, function(err2, res2) {
+  		if (err2) throw err2;
+
+    	for (var i = 0; i < res2.length; i++) {
+
+      	choices.push(res2[i].product_name);
+
+
+
+   	 	}; //end of for loop
+
+   	 		inquirer
+    		.prompt([{
+     				name: "decision",
+      				type: "list",
+      				message: "For which item would you like to add inventory?",
+      				choices: choices
+    	}, {
+     				name: "quantity",
+      				type: "string",
+      				message: chalk.cyanBright("How many items do you want to add to inventory?"),
+      				validate: function (answer) {
+
+           			return /[1-9]/gi.test(answer);  //this is a  validation that check for alpha or numeric [a-z1-9]
+           								
+
+
+  } //end of validation
+}]) //end of prompt
+
+  			.then(function(answer) {
+  				console.log(answer);
+
+  				var item = answer.decision;
+    			var quantity = parseFloat(answer.quantity);
+    			// console.log(quantity);
+    			// console.log(item);
+
+    			var query = "UPDATE products SET stock_quantity = stock_quantity +" + quantity + "WHERE product_name='" + item + "'";
+
+  				connection.query(query, function(err3, res3) {
+    			if (err3) throw err3;
+
+    			// console.log(res2.affectedRows + " record(s) updated");
+
+      			console.log(chalk.greenBright(item + " quantity has been updated."));
+      			viewProducts();
+
+    }); //end of connection
+
+  
+
+}); //end of second nested then
+
+
+
+
+
+
+}); //end of earlier then
+   //end of connection
+
+  	}; // end of add inventory
+
+
+
+  	function addNew () {
+
+
+  		inquirer
+
+  		.prompt([
+
+
+  		{
+
+            name: "product_name",
+            type: "input",
+            message: chalk.magenta("What is the name of the item you wish to stock?")
+        },
+        {
+            name: 'department_name',
+            type: 'input',
+            message: chalk.blue("What is the department for this product?")
+        },
+        {
+            name: 'price',
+            type: 'input',
+            message: chalk.cyan("How much does the product retail for?")
+        },
+        {
+            name: 'stock_quantity',
+            type: 'input',
+            message: chalk.yellow("How much inventory would you like to add?")
+        }
+
+
+
+  		])
+
+  		.then(function(answers) {
+
+  			var product = answers.product_name
+ 
+  			var department = answers.department_name;
+
+  			var price1 = parseFloat(answers.price);
+
+  			var stock = parseInt(answers.stock_quantity);
+
+  			var query = 'INSERT INTO products (product_name, department_name, price, stock_quantity) VALUES ("' + product + '","' + department + '","' + price1 + '","' + stock + '")';
+
+  				connection.query(query, function(err4, res4) {
+    			if (err4) throw err4;
+
+      			console.log(chalk.greenBright("New item has been added!"));
+      			viewProducts();
+
+
+
+
+
+
+
+
+  		}); //end of connection
+
+  			}); //end of then
+
+  	}; //end of add new
+
+  
+
+
+
+begin();
 
 
 

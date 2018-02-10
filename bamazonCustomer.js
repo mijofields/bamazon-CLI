@@ -1,10 +1,10 @@
 var inquirer = require('inquirer');
 var mysql = require('mysql');
 var chalk = require('chalk');
+var cTable= require("console.table");
 
 var choices = [];
 
-function begin () {
 
 var connection = mysql.createConnection({
   host: "localhost",
@@ -14,27 +14,34 @@ var connection = mysql.createConnection({
   user: "root",
 
   // Your password
-  password: "Equ1f4x!",
+  password: "5qlp5word",
   database: "bamazon_db"
 });
 
 
 connection.connect(function(err) {
   if (err) throw err;
-  console.log("connected as id " + connection.threadId);
-  console.log("These are the items currently for sale...");
+
+  });
+
+begin();
 
 
 
-	var query = "SELECT * FROM products";
+function begin () {
+
+  	console.log(chalk.blue("These are the items currently for sale..."));
+
+
+
+	var query = "SELECT item_id, product_name, price, stock_quantity FROM products";
   		connection.query(query, function(err, res) {
   		if (err) throw err;
 
+  		console.table(res);
 
-  		console.log("Item ID | Product Name | Product Price\n-------------------------------------");
 
     	for (var i = 0; i < res.length; i++) {
-      	console.log(res[i].item_id + " | " + res[i].product_name + " | $ "+ res[i].price + " | ");
 
       	choices.push(res[i].product_name);
 
@@ -45,24 +52,15 @@ connection.connect(function(err) {
    	 	  	console.log("--------------------------------------");
 
    	 		inquirer
-    		.prompt({
+    		.prompt([{
      				name: "decision",
       				type: "list",
-      				message: "Which item would you like to purchase?",
+      				message: chalk.cyanBright("Which item would you like to purchase?"),
       				choices: choices
-    	}) //end of prompt 1
-    		// console.log(answer);
-    		// console.log("--------------------------------------");
-
-    		
-    		.then(function(answer) {
-    		var item = answer.decision;
-
-			inquirer
-    		.prompt({
-     				name: "quantity",
+    	}, { 
+    	     		name: "quantity",
       				type: "string",
-      				message: "How many items would you like to purchase?",
+      				message: chalk.green("How many items would you like to purchase?"),
       				validate: function (answer) {
 
            			return /[1-9]/gi.test(answer);  //this is a  validation that check for alpha or numeric [a-z1-9]
@@ -71,19 +69,20 @@ connection.connect(function(err) {
 
   } //end of validation
 
-})
+}])
 
-    		.then(function(answer) {
+    		.then(function(answers) {
 
-    			var quantity = parseInt(answer.quantity);
+    			var quantity = parseInt(answers.quantity);
+    			var item = answers.decision;
 
     		var query = "SELECT * FROM products WHERE ?";
-  				connection.query(query, { product_name: item }, function(err, res) {
-  				if (err) throw err;
+  				connection.query(query, { product_name: item }, function(err1, res) {
+  				if (err1) throw err1;
 
   				if (quantity > parseInt(res[0].stock_quantity)) {
 
-  					console.log("Sorry we don't have enough in stock");
+  					console.log(chalk.red("Sorry we don't have enough in stock"));
 
   					begin();
 
@@ -92,7 +91,7 @@ connection.connect(function(err) {
 
   					var newQuantity = parseInt(res[0].stock_quantity) - quantity;
 
-  					console.log("OK transaction complete!\n The cost before tax is $" +(quantity*res[0].price));
+  					console.log(chalk.yellow("OK transaction complete!\nThe cost before tax is $" +(quantity*res[0].price)));
 
   					var query = "UPDATE products SET ? WHERE ?";
 
@@ -108,9 +107,11 @@ connection.connect(function(err) {
     function(err, res) {
     	if (err) throw err;
 
-      	console.log(item + " quantity has been updated, there are now " + newQuantity + " left in stock.");
+      	console.log(chalk.magenta(item + " quantity has been updated, there are now " + newQuantity + " left in stock."));
+
 
     });
+  					begin();
 
   				};
 
@@ -126,14 +127,12 @@ connection.connect(function(err) {
 }); //end of then
 
 }); //end of then
+//end of connection
 
-}); //end of connection
-
-});
 
 }
 
-begin();
+
 
 
 
