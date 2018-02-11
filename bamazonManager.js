@@ -213,20 +213,13 @@ function addInventory() {
 
   		.then(function(answers) {
 
-  			var product = answers.product_name
- 
-  			var department = answers.department_name;
-
-  			var price1 = parseFloat(answers.price);
-
-  			var stock = parseInt(answers.stock_quantity);
 
   			var query = 'INSERT INTO products (product_name, department_name, price, stock_quantity) VALUES (?, ?, ?, ?)';
 
   				connection.query(query, [answers.product_name, answers.department_name, parseFloat(answers.price), answers.stock_quantity], function(err4, res4) {
     			if (err4) throw err4;
 
-      			console.log(chalk.greenBright("New item " + Product+ " has been added!"));
+      			console.log(chalk.greenBright("New item " + answers.product_name + " has been added!"));
       			viewProducts();
 
 
