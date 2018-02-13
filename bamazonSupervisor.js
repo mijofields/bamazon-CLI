@@ -59,7 +59,8 @@ inquirer
 
 function departmentSales () {
 
-		var query = "SELECT * FROM departments";
+		var query = "SELECT departments.department_id, departments.department_name, departments.over_head_costs, SUM(products.product_sales) AS 'Total Sales', SUM(products.product_sales) - over_head_costs AS 'Profit' FROM departments INNER JOIN products ON products.department_name = departments.department_name GROUP BY departments.department_id";
+
   		connection.query(query, function(err1, res1) {
   		if (err1) throw err1;
 
